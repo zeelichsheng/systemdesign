@@ -33,11 +33,14 @@ Decorators provide a flexible alternative to subclassing for extending functiona
 
 - Classes should be open for extension but closed for modification.
 
-
 ## Factory Method Pattern
 
 The factory method pattern defines an interface for creating an object, but lets subclasses decide which class to instantiate. Factory method lets a class defer instantiation to subclasses.
 
 ### Principles
 
-- Depend upon abstrations. Do not depend upon concrete classes.
+- Depend upon abstractions. Do not depend upon concrete classes.
+
+## Command Pattern
+
+The command pattern encapsulates a request as an object, thereby letting you parameterize clients with different requests, queue or log requests, and support undoable operations.
