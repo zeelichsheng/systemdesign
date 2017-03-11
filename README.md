@@ -15,3 +15,10 @@ what stays the same.
 - Program to an interface, not an implementation.
 - Favor composition over inheritance.
 
+## Observer Pattern
+
+The observer pattern defines a one-to-many dependency between objects so that when one object changes state, all of its dependents are notified and updated automatically.
+
+### Principles
+
+- Strive for loosely coupled designs between objects that interact.
