@@ -23,7 +23,6 @@ The observer pattern defines a one-to-many dependency between objects so that wh
 
 - Strive for loosely coupled designs between objects that interact.
 
-
 ## Decorator Pattern
 
 The decorator pattern attaches additional responsibilities to an object dynamically.
@@ -33,3 +32,12 @@ Decorators provide a flexible alternative to subclassing for extending functiona
 ### Principles
 
 - Classes should be open for extension but closed for modification.
+
+
+## Factory Method Pattern
+
+The factory method pattern defines an interface for creating an object, but lets subclasses decide which class to instantiate. Factory method lets a class defer instantiation to subclasses.
+
+### Principles
+
+- Depend upon abstrations. Do not depend upon concrete classes.
