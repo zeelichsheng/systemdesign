@@ -112,3 +112,4 @@ If one of the machine fails, the cache would become unavailable. The most common
 3. [Design a Cache System](http://blog.gainlo.co/index.php/2016/05/17/design-a-cache-system/)
 4. [Design Key-Value Store](http://blog.gainlo.co/index.php/2016/06/14/design-a-key-value-store-part-i/)
 5. [Design a Cache Interview Walkthrough](https://www.interviewbit.com/problems/design-cache)
+6. [Intro to Caching](http://javalandscape.blogspot.com/2009/01/cachingcaching-algorithms-and-caching.html?m=1)
