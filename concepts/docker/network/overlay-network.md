@@ -234,6 +234,183 @@ ubuntu@docker-node1:~$ sudo docker network inspect overlay-demo
 ]
 ```
 
+```text
+ubuntu@docker-node1:~/etcd-v3.2.8-linux-amd64$ sudo docker inspect test1
+[
+    {
+        "Id": "72194b2de037fc3454ebb1dccb21c91ec0469c504bee263d2a8326bf94a08571",
+        "Created": "2017-09-30T17:03:36.421793123Z",
+        "Path": "sh",
+        "Args": [
+            "-c",
+            "while true; do sleep 3600; done"
+        ],
+        "State": {
+            "Status": "running",
+            "Running": true,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 4137,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2017-09-30T17:03:36.848333448Z",
+            "FinishedAt": "0001-01-01T00:00:00Z"
+        },
+        "Image": "sha256:54511612f1c4d97e93430fc3d5dc2f05dfbe8fb7e6259b7351deeca95eaf2971",
+        "ResolvConfPath": "/var/lib/docker/containers/72194b2de037fc3454ebb1dccb21c91ec0469c504bee263d2a8326bf94a08571/resolv.conf",
+        "HostnamePath": "/var/lib/docker/containers/72194b2de037fc3454ebb1dccb21c91ec0469c504bee263d2a8326bf94a08571/hostname",
+        "HostsPath": "/var/lib/docker/containers/72194b2de037fc3454ebb1dccb21c91ec0469c504bee263d2a8326bf94a08571/hosts",
+        "LogPath": "/var/lib/docker/containers/72194b2de037fc3454ebb1dccb21c91ec0469c504bee263d2a8326bf94a08571/72194b2de037fc3454ebb1dccb21c91ec0469c504bee263d2a8326bf94a08571-json.log",
+        "Name": "/test1",
+        "RestartCount": 0,
+        "Driver": "aufs",
+        "MountLabel": "",
+        "ProcessLabel": "",
+        "AppArmorProfile": "",
+        "ExecIDs": [
+            "398e715e5472115f225b0c8940c64976d1a9bce18b662863b3e2a2604ca9d821"
+        ],
+        "HostConfig": {
+            "Binds": null,
+            "ContainerIDFile": "",
+            "LogConfig": {
+                "Type": "json-file",
+                "Config": {}
+            },
+            "NetworkMode": "overlay-demo",
+            "PortBindings": {},
+            "RestartPolicy": {
+                "Name": "no",
+                "MaximumRetryCount": 0
+            },
+            "AutoRemove": false,
+            "VolumeDriver": "",
+            "VolumesFrom": null,
+            "CapAdd": null,
+            "CapDrop": null,
+            "Dns": [],
+            "DnsOptions": [],
+            "DnsSearch": [],
+            "ExtraHosts": null,
+            "GroupAdd": null,
+            "IpcMode": "",
+            "Cgroup": "",
+            "Links": null,
+            "OomScoreAdj": 0,
+            "PidMode": "",
+            "Privileged": false,
+            "PublishAllPorts": false,
+            "ReadonlyRootfs": false,
+            "SecurityOpt": null,
+            "UTSMode": "",
+            "UsernsMode": "",
+            "ShmSize": 67108864,
+            "Runtime": "runc",
+            "ConsoleSize": [
+                0,
+                0
+            ],
+            "Isolation": "",
+            "CpuShares": 0,
+            "Memory": 0,
+            "CgroupParent": "",
+            "BlkioWeight": 0,
+            "BlkioWeightDevice": null,
+            "BlkioDeviceReadBps": null,
+            "BlkioDeviceWriteBps": null,
+            "BlkioDeviceReadIOps": null,
+            "BlkioDeviceWriteIOps": null,
+            "CpuPeriod": 0,
+            "CpuQuota": 0,
+            "CpusetCpus": "",
+            "CpusetMems": "",
+            "Devices": [],
+            "DiskQuota": 0,
+            "KernelMemory": 0,
+            "MemoryReservation": 0,
+            "MemorySwap": 0,
+            "MemorySwappiness": -1,
+            "OomKillDisable": false,
+            "PidsLimit": 0,
+            "Ulimits": null,
+            "CpuCount": 0,
+            "CpuPercent": 0,
+            "IOMaximumIOps": 0,
+            "IOMaximumBandwidth": 0
+        },
+        "GraphDriver": {
+            "Name": "aufs",
+            "Data": null
+        },
+        "Mounts": [],
+        "Config": {
+            "Hostname": "72194b2de037",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            ],
+            "Cmd": [
+                "sh",
+                "-c",
+                "while true; do sleep 3600; done"
+            ],
+            "Image": "busybox",
+            "Volumes": null,
+            "WorkingDir": "",
+            "Entrypoint": null,
+            "OnBuild": null,
+            "Labels": {}
+        },
+        "NetworkSettings": {
+            "Bridge": "",
+            "SandboxID": "bb266b85d325877636f96194a6ae7d49c690c886dc1059a7c7f4cc8971c463b8",
+            "HairpinMode": false,
+            "LinkLocalIPv6Address": "",
+            "LinkLocalIPv6PrefixLen": 0,
+            "Ports": {},
+            "SandboxKey": "/var/run/docker/netns/bb266b85d325",
+            "SecondaryIPAddresses": null,
+            "SecondaryIPv6Addresses": null,
+            "EndpointID": "",
+            "Gateway": "",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "IPAddress": "",
+            "IPPrefixLen": 0,
+            "IPv6Gateway": "",
+            "MacAddress": "",
+            "Networks": {
+                "overlay-demo": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": [
+                        "72194b2de037"
+                    ],
+                    "NetworkID": "c60a3769ec74301345bae3a633ebec0482c1b633bb6b00d1e0c48df3e2427aac",
+                    "EndpointID": "0b97fc2894ea49bb8f655a0598dfdd12454933f156ade2016a601fa8243d9df3",
+                    "Gateway": "",
+                    "IPAddress": "10.0.0.2",
+                    "IPPrefixLen": 24,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "MacAddress": "02:42:0a:00:00:02"
+                }
+            }
+        }
+    }
+]
+```
+
 Note that the container's network is actually in 10.0.0.0/24 subnet (container's IP is 10.0.0.2).
 
 This is contradictory to what we just observed in the host's namespace. The veth device is assigned an IP in the 172.18.0.0/16 subnet. 
@@ -344,7 +521,7 @@ ubuntu@docker-node1:~/etcd-v3.2.8-linux-amd64$ sudo ip netns exec bb26 ip link
     link/ether 02:42:ac:12:00:02 brd ff:ff:ff:ff:ff:ff link-netnsid 1
 ```
 
-This is exactly the same output as we have in the container. It means that bb266b85d325 is the container test1's network namespace.
+This is exactly the same output as we have in the container. It means that bb266b85d325 is the container test1's network namespace. If you compare the docker netns ID with the docker inspect container output, you will find that this is exactly the container's sandbox ID.
 
 ### Diagram
 
