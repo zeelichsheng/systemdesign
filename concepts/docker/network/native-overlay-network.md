@@ -1,16 +1,12 @@
-This document explains how docker configures the network of the host and the container in a multi-host scenario.
+This document explains how docker configures the network of the host and the container in a multi-host scenario. We will examine how docker's native overlay network driver works. We use ETCD as the external key-value store.
 
-In this example, we follow [Docker Machine on Localhost](http://docker-k8s-lab.readthedocs.io/en/latest/docker/docker-machine.html) to setup two virtual machines that run docker locally. 
+In this example, we follow [Docker Machine on Localhost](http://docker-k8s-lab.readthedocs.io/en/latest/docker/docker-machine.html) to setup two virtual machines that run docker locally. Some output are trimmed to save output space.
 
-# Docker Overlay Network with ETCD
+# Initial State
 
-In this example, we use docker's built-in support of overlay network. We setup ETCD to store the overlay network information.
+We create an overlay network "overlay-demo" on docker-node1. After that, docker-node2 should see the same overlay network as it is synched via ETCD.
 
-Note that following the instruction, we created a new "overlay-demo" network that is used to create containers instead of using the default "bridge" network.
-
-## Initial State
-
-### Initial Network Configuration - docker-node1
+## Initial Network Configuration - docker-node1
 
 ```text
 ubuntu@docker-node1:~$ sudo docker network ls
@@ -29,10 +25,8 @@ ubuntu@docker-node1:~$ sudo docker network inspect overlay-demo
         "Id": "c60a3769ec74301345bae3a633ebec0482c1b633bb6b00d1e0c48df3e2427aac",
         "Scope": "global",
         "Driver": "overlay",
-        "EnableIPv6": false,
         "IPAM": {
             "Driver": "default",
-            "Options": {},
             "Config": [
                 {
                     "Subnet": "10.0.0.0/24",
@@ -41,27 +35,18 @@ ubuntu@docker-node1:~$ sudo docker network inspect overlay-demo
             ]
         },
         "Internal": false,
-        "Containers": {},
-        "Options": {},
-        "Labels": {}
     }
 ]
 ```
 
 ```text
 ubuntu@docker-node1:~$ ip route
-default via 10.0.2.2 dev enp0s3 
-10.0.2.0/24 dev enp0s3  proto kernel  scope link  src 10.0.2.15 
 172.17.0.0/16 dev docker0  proto kernel  scope link  src 172.17.0.1 linkdown 
 192.168.205.0/24 dev enp0s8  proto kernel  scope link  src 192.168.205.10 
 ```
 
 ```text
 ubuntu@docker-node1:~$ ip link
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
-    link/ether 02:a4:a0:f1:db:6e brd ff:ff:ff:ff:ff:ff
 3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
     link/ether 08:00:27:76:c9:85 brd ff:ff:ff:ff:ff:ff
 4: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN mode DEFAULT group default 
@@ -71,11 +56,9 @@ ubuntu@docker-node1:~$ ip link
 ```text
 ubuntu@docker-node1:~$ ip neighbor
 192.168.205.11 dev enp0s8 lladdr 08:00:27:7c:fe:ad REACHABLE
-10.0.2.3 dev enp0s3 lladdr 52:54:00:12:35:03 STALE
-10.0.2.2 dev enp0s3 lladdr 52:54:00:12:35:02 REACHABLE
 ```
 
-### Initial Network Configuration - docker-node2
+## Initial Network Configuration - docker-node2
 
 ```text
 ubuntu@docker-node2:~$ sudo docker network ls
@@ -94,10 +77,8 @@ ubuntu@docker-node2:~$ sudo docker network inspect overlay-demo
         "Id": "c60a3769ec74301345bae3a633ebec0482c1b633bb6b00d1e0c48df3e2427aac",
         "Scope": "global",
         "Driver": "overlay",
-        "EnableIPv6": false,
         "IPAM": {
             "Driver": "default",
-            "Options": {},
             "Config": [
                 {
                     "Subnet": "10.0.0.0/24",
@@ -106,27 +87,18 @@ ubuntu@docker-node2:~$ sudo docker network inspect overlay-demo
             ]
         },
         "Internal": false,
-        "Containers": {},
-        "Options": {},
-        "Labels": {}
     }
 ]
 ```
 
 ```text
 ubuntu@docker-node2:~$ ip route
-default via 10.0.2.2 dev enp0s3 
-10.0.2.0/24 dev enp0s3  proto kernel  scope link  src 10.0.2.15 
 172.17.0.0/16 dev docker0  proto kernel  scope link  src 172.17.0.1 linkdown 
 192.168.205.0/24 dev enp0s8  proto kernel  scope link  src 192.168.205.11 
 ```
 
 ```text
 ubuntu@docker-node2:~$ ip link
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
-    link/ether 02:a4:a0:f1:db:6e brd ff:ff:ff:ff:ff:ff
 3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
     link/ether 08:00:27:7c:fe:ad brd ff:ff:ff:ff:ff:ff
 4: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN mode DEFAULT group default 
@@ -135,12 +107,10 @@ ubuntu@docker-node2:~$ ip link
 
 ```text
 ubuntu@docker-node2:~$ ip neighbor
-10.0.2.3 dev enp0s3 lladdr 52:54:00:12:35:03 STALE
 192.168.205.10 dev enp0s8 lladdr 08:00:27:76:c9:85 REACHABLE
-10.0.2.2 dev enp0s3 lladdr 52:54:00:12:35:02 REACHABLE
 ```
 
-### ETCD Configuration
+## ETCD Configuration
 
 Docker writes configurations to ETCD.
 
@@ -154,16 +124,14 @@ ubuntu@docker-node1:~$ etcdctl get /docker/network/v1.0/overlay/network/c60a3769
 {"mtu":0,"secure":false,"subnets":[{"SubnetIP":"10.0.0.0/24","GwIP":"10.0.0.1/24","Vni":256}]}
 ```
 
-## Create Container test1 on docker-node1
+# Create Container test1 on docker-node1
 
 We create a container on docker-node1. Let's examine the network configuration changes.
 
-### Host Network Configuration on docker-node1
+## Host Network Configuration on docker-node1
 
 ```text
 ubuntu@docker-node1:~$ ip route
-default via 10.0.2.2 dev enp0s3 
-10.0.2.0/24 dev enp0s3  proto kernel  scope link  src 10.0.2.15 
 172.17.0.0/16 dev docker0  proto kernel  scope link  src 172.17.0.1 linkdown 
 172.18.0.0/16 dev docker_gwbridge  proto kernel  scope link  src 172.18.0.1 
 192.168.205.0/24 dev enp0s8  proto kernel  scope link  src 192.168.205.10 
@@ -173,10 +141,6 @@ A new bridge (docker_gwbridge) is created, and subnet 172.18.0.0/16 is assigned 
 
 ```text
 ubuntu@docker-node1:~$ ip link
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
-    link/ether 02:a4:a0:f1:db:6e brd ff:ff:ff:ff:ff:ff
 3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
     link/ether 08:00:27:76:c9:85 brd ff:ff:ff:ff:ff:ff
 4: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN mode DEFAULT group default 
@@ -191,13 +155,11 @@ A veth end (veth5f5c9f5) is created in the host's namespace, which is connected 
 
 ```text
 ubuntu@docker-node1:~$ ip neighbor
-10.0.2.2 dev enp0s3 lladdr 52:54:00:12:35:02 DELAY
-10.0.2.3 dev enp0s3 lladdr 52:54:00:12:35:03 STALE
 172.18.0.2 dev docker_gwbridge lladdr 02:42:ac:12:00:02 STALE
 192.168.205.11 dev enp0s8 lladdr 08:00:27:7c:fe:ad REACHABLE
 ```
 
-### Container Network Configuration on docker-node1
+## Container Network Configuration on docker-node1
 
 ```text
 ubuntu@docker-node1:~$ sudo docker network inspect overlay-demo
@@ -207,10 +169,8 @@ ubuntu@docker-node1:~$ sudo docker network inspect overlay-demo
         "Id": "c60a3769ec74301345bae3a633ebec0482c1b633bb6b00d1e0c48df3e2427aac",
         "Scope": "global",
         "Driver": "overlay",
-        "EnableIPv6": false,
         "IPAM": {
             "Driver": "default",
-            "Options": {},
             "Config": [
                 {
                     "Subnet": "10.0.0.0/24",
@@ -228,8 +188,6 @@ ubuntu@docker-node1:~$ sudo docker network inspect overlay-demo
                 "IPv6Address": ""
             }
         },
-        "Options": {},
-        "Labels": {}
     }
 ]
 ```
@@ -238,171 +196,18 @@ ubuntu@docker-node1:~$ sudo docker network inspect overlay-demo
 ubuntu@docker-node1:~/etcd-v3.2.8-linux-amd64$ sudo docker inspect test1
 [
     {
-        "Id": "72194b2de037fc3454ebb1dccb21c91ec0469c504bee263d2a8326bf94a08571",
-        "Created": "2017-09-30T17:03:36.421793123Z",
-        "Path": "sh",
-        "Args": [
-            "-c",
-            "while true; do sleep 3600; done"
-        ],
-        "State": {
-            "Status": "running",
-            "Running": true,
-            "Paused": false,
-            "Restarting": false,
-            "OOMKilled": false,
-            "Dead": false,
-            "Pid": 4137,
-            "ExitCode": 0,
-            "Error": "",
-            "StartedAt": "2017-09-30T17:03:36.848333448Z",
-            "FinishedAt": "0001-01-01T00:00:00Z"
-        },
-        "Image": "sha256:54511612f1c4d97e93430fc3d5dc2f05dfbe8fb7e6259b7351deeca95eaf2971",
-        "ResolvConfPath": "/var/lib/docker/containers/72194b2de037fc3454ebb1dccb21c91ec0469c504bee263d2a8326bf94a08571/resolv.conf",
-        "HostnamePath": "/var/lib/docker/containers/72194b2de037fc3454ebb1dccb21c91ec0469c504bee263d2a8326bf94a08571/hostname",
-        "HostsPath": "/var/lib/docker/containers/72194b2de037fc3454ebb1dccb21c91ec0469c504bee263d2a8326bf94a08571/hosts",
-        "LogPath": "/var/lib/docker/containers/72194b2de037fc3454ebb1dccb21c91ec0469c504bee263d2a8326bf94a08571/72194b2de037fc3454ebb1dccb21c91ec0469c504bee263d2a8326bf94a08571-json.log",
-        "Name": "/test1",
-        "RestartCount": 0,
-        "Driver": "aufs",
-        "MountLabel": "",
-        "ProcessLabel": "",
-        "AppArmorProfile": "",
-        "ExecIDs": [
-            "398e715e5472115f225b0c8940c64976d1a9bce18b662863b3e2a2604ca9d821"
-        ],
-        "HostConfig": {
-            "Binds": null,
-            "ContainerIDFile": "",
-            "LogConfig": {
-                "Type": "json-file",
-                "Config": {}
-            },
-            "NetworkMode": "overlay-demo",
-            "PortBindings": {},
-            "RestartPolicy": {
-                "Name": "no",
-                "MaximumRetryCount": 0
-            },
-            "AutoRemove": false,
-            "VolumeDriver": "",
-            "VolumesFrom": null,
-            "CapAdd": null,
-            "CapDrop": null,
-            "Dns": [],
-            "DnsOptions": [],
-            "DnsSearch": [],
-            "ExtraHosts": null,
-            "GroupAdd": null,
-            "IpcMode": "",
-            "Cgroup": "",
-            "Links": null,
-            "OomScoreAdj": 0,
-            "PidMode": "",
-            "Privileged": false,
-            "PublishAllPorts": false,
-            "ReadonlyRootfs": false,
-            "SecurityOpt": null,
-            "UTSMode": "",
-            "UsernsMode": "",
-            "ShmSize": 67108864,
-            "Runtime": "runc",
-            "ConsoleSize": [
-                0,
-                0
-            ],
-            "Isolation": "",
-            "CpuShares": 0,
-            "Memory": 0,
-            "CgroupParent": "",
-            "BlkioWeight": 0,
-            "BlkioWeightDevice": null,
-            "BlkioDeviceReadBps": null,
-            "BlkioDeviceWriteBps": null,
-            "BlkioDeviceReadIOps": null,
-            "BlkioDeviceWriteIOps": null,
-            "CpuPeriod": 0,
-            "CpuQuota": 0,
-            "CpusetCpus": "",
-            "CpusetMems": "",
-            "Devices": [],
-            "DiskQuota": 0,
-            "KernelMemory": 0,
-            "MemoryReservation": 0,
-            "MemorySwap": 0,
-            "MemorySwappiness": -1,
-            "OomKillDisable": false,
-            "PidsLimit": 0,
-            "Ulimits": null,
-            "CpuCount": 0,
-            "CpuPercent": 0,
-            "IOMaximumIOps": 0,
-            "IOMaximumBandwidth": 0
-        },
-        "GraphDriver": {
-            "Name": "aufs",
-            "Data": null
-        },
-        "Mounts": [],
-        "Config": {
-            "Hostname": "72194b2de037",
-            "Domainname": "",
-            "User": "",
-            "AttachStdin": false,
-            "AttachStdout": false,
-            "AttachStderr": false,
-            "Tty": false,
-            "OpenStdin": false,
-            "StdinOnce": false,
-            "Env": [
-                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-            ],
-            "Cmd": [
-                "sh",
-                "-c",
-                "while true; do sleep 3600; done"
-            ],
-            "Image": "busybox",
-            "Volumes": null,
-            "WorkingDir": "",
-            "Entrypoint": null,
-            "OnBuild": null,
-            "Labels": {}
-        },
         "NetworkSettings": {
-            "Bridge": "",
             "SandboxID": "bb266b85d325877636f96194a6ae7d49c690c886dc1059a7c7f4cc8971c463b8",
-            "HairpinMode": false,
-            "LinkLocalIPv6Address": "",
-            "LinkLocalIPv6PrefixLen": 0,
-            "Ports": {},
             "SandboxKey": "/var/run/docker/netns/bb266b85d325",
-            "SecondaryIPAddresses": null,
-            "SecondaryIPv6Addresses": null,
-            "EndpointID": "",
-            "Gateway": "",
-            "GlobalIPv6Address": "",
-            "GlobalIPv6PrefixLen": 0,
-            "IPAddress": "",
-            "IPPrefixLen": 0,
-            "IPv6Gateway": "",
-            "MacAddress": "",
             "Networks": {
                 "overlay-demo": {
-                    "IPAMConfig": null,
-                    "Links": null,
                     "Aliases": [
                         "72194b2de037"
                     ],
                     "NetworkID": "c60a3769ec74301345bae3a633ebec0482c1b633bb6b00d1e0c48df3e2427aac",
                     "EndpointID": "0b97fc2894ea49bb8f655a0598dfdd12454933f156ade2016a601fa8243d9df3",
-                    "Gateway": "",
                     "IPAddress": "10.0.0.2",
                     "IPPrefixLen": 24,
-                    "IPv6Gateway": "",
-                    "GlobalIPv6Address": "",
-                    "GlobalIPv6PrefixLen": 0,
                     "MacAddress": "02:42:0a:00:00:02"
                 }
             }
@@ -434,15 +239,6 @@ eth1      Link encap:Ethernet  HWaddr 02:42:AC:12:00:02
           TX packets:8 errors:0 dropped:0 overruns:0 carrier:0
           collisions:0 txqueuelen:0 
           RX bytes:1218 (1.1 KiB)  TX bytes:648 (648.0 B)
-
-lo        Link encap:Local Loopback  
-          inet addr:127.0.0.1  Mask:255.0.0.0
-          inet6 addr: ::1/128 Scope:Host
-          UP LOOPBACK RUNNING  MTU:65536  Metric:1
-          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
-          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
-          collisions:0 txqueuelen:1 
-          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
 ```
 
 We find that there are two ethernet devices created in the container. eth0 is in the container's overlay subnet (10.0.0.2), while eth1 is in the local subnet (172.18.0.2).
@@ -495,8 +291,6 @@ This is the namespace of our overlay network.
 
 ```text
 ubuntu@docker-node1:~/etcd-v3.2.8-linux-amd64$ sudo ip netns exec c60a ip link
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
 2: br0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UP mode DEFAULT group default 
     link/ether 76:20:6b:fc:a5:19 brd ff:ff:ff:ff:ff:ff
 6: vxlan1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master br0 state UNKNOWN mode DEFAULT group default 
@@ -513,8 +307,6 @@ Let's examine the other namespace (bb266b85d325).
 
 ```text
 ubuntu@docker-node1:~/etcd-v3.2.8-linux-amd64$ sudo ip netns exec bb26 ip link
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
 7: eth0@if8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UP mode DEFAULT group default 
     link/ether 02:42:0a:00:00:02 brd ff:ff:ff:ff:ff:ff link-netnsid 0
 10: eth1@if11: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP mode DEFAULT group default 
@@ -523,7 +315,7 @@ ubuntu@docker-node1:~/etcd-v3.2.8-linux-amd64$ sudo ip netns exec bb26 ip link
 
 This is exactly the same output as we have in the container. It means that bb266b85d325 is the container test1's network namespace. If you compare the docker netns ID with the docker inspect container output, you will find that this is exactly the container's sandbox ID.
 
-### Diagram
+## Diagram
 
 The following diagram illustrates the configuration.
 
@@ -565,7 +357,7 @@ The following diagram illustrates the configuration.
 |-------------------------------------------------------------------------------------------------------------------------------------|
 ```
 
-## Create Container test2 on docker-node2
+# Create Container test2 on docker-node2
 
 After creating a container test2 on the second node, the same configuration is applied to the host and the container.
 
