@@ -18,7 +18,7 @@ We follow [Docker Machine on Localhost](http://docker-k8s-lab.readthedocs.io/en/
 
 Here we show the initial network configuration of docker-node1. The docker-node2 has a symmetric network configuration as docker-node1.
 
-```text
+```bash
 ubuntu@docker-node1:~/etcd-v3.2.8-linux-amd64$ sudo docker network ls
 NETWORK ID          NAME                DRIVER              SCOPE
 1782f2dc755b        bridge              bridge              local               
@@ -26,7 +26,7 @@ NETWORK ID          NAME                DRIVER              SCOPE
 977994a4596a        none                null                local 
 ```    
           
-```text
+```bash
 ubuntu@docker-node1:~/etcd-v3.2.8-linux-amd64$ sudo docker network inspect bridge
 [
     {
@@ -47,13 +47,13 @@ ubuntu@docker-node1:~/etcd-v3.2.8-linux-amd64$ sudo docker network inspect bridg
 ]
 ```
 
-```text
+```bash
 ubuntu@docker-node1:~/etcd-v3.2.8-linux-amd64$ ip route
 172.17.0.0/16 dev docker0  proto kernel  scope link  src 172.17.0.1 linkdown 
 192.168.205.0/24 dev enp0s8  proto kernel  scope link  src 192.168.205.10 
 ```
 
-```text
+```bash
 ubuntu@docker-node1:~/etcd-v3.2.8-linux-amd64$ ip link
 3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
     link/ether 08:00:27:cb:b7:b0 brd ff:ff:ff:ff:ff:ff
@@ -61,7 +61,7 @@ ubuntu@docker-node1:~/etcd-v3.2.8-linux-amd64$ ip link
     link/ether 02:42:f3:a3:02:96 brd ff:ff:ff:ff:ff:ff
 ```
 
-```text
+```bash
 ubuntu@docker-node1:~/etcd-v3.2.8-linux-amd64$ ip neighbor
 192.168.205.11 dev enp0s8 lladdr 08:00:27:25:31:d8 REACHABLE
 ```
@@ -96,7 +96,7 @@ The following diagram illustrates the system. Note that without flannel, contain
 
 We write the following network configuration to ETCD to reserve a 10.0.0.0/8 network. The subnets of this network starts from 10.10.0.0 to 10.99.0.0, where each subnet has a /20 prefix.
 
-```text
+```bash
 ubuntu@docker-node1:~$ etcdctl set /coreos.com/network/config '{"Network": "10.0.0.0/8", "SubnetLen": 20, "SubnetMin": "10.10.0.0","SubnetMax": "10.99.0.0","Backend": {"Type": "vxlan","VNI": 100,"Port": 8472}}'
 ```
 
@@ -106,7 +106,7 @@ We start flannel on docker-node1. Note that we change the docker's default bridg
 
 Let's examine the network configuration of docker-node1.
 
-```text
+```bash
 ubuntu@docker-node1:~$ sudo docker network inspect bridge
 [
     {
@@ -128,7 +128,7 @@ ubuntu@docker-node1:~$ sudo docker network inspect bridge
 ]
 ```
 
-```text
+```bash
 ubuntu@docker-node1:~$ ip link
 3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
     link/ether 08:00:27:cb:b7:b0 brd ff:ff:ff:ff:ff:ff
@@ -138,13 +138,13 @@ ubuntu@docker-node1:~$ ip link
     link/ether 5a:13:d0:c0:00:db brd ff:ff:ff:ff:ff:ff
 ```
 
-```text
+```bash
 ubuntu@docker-node1:~$ ip route
 10.15.240.0/20 dev docker0  proto kernel  scope link  src 10.15.240.1 linkdown 
 192.168.205.0/24 dev enp0s8  proto kernel  scope link  src 192.168.205.10 
 ```
 
-```text
+```bash
 ubuntu@docker-node1:~$ ip neighbor
 192.168.205.11 dev enp0s8 lladdr 08:00:27:25:31:d8 REACHABLE
 ```
@@ -189,7 +189,7 @@ The following diagram illustrates the system.
 
 We follow the same step to start flannel on docker-node2. Let's examine the network configuration changes on docker-node2.
 
-```text
+```bash
 ubuntu@docker-node2:~$ sudo docker network inspect bridge
 [
     {
@@ -211,19 +211,19 @@ ubuntu@docker-node2:~$ sudo docker network inspect bridge
 ]
 ```
 
-```text
+```bash
 ubuntu@docker-node2:~$ sudo docker exec test2 ip link
 8: eth0@if9: <BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN> mtu 1450 qdisc noqueue 
     link/ether 02:42:0a:0a:c0:02 brd ff:ff:ff:ff:ff:ff
 ```
 
-```text
+```bash
 ubuntu@docker-node2:~$ sudo docker exec test2 ip route
 default via 10.10.192.1 dev eth0 
 10.10.192.0/20 dev eth0 scope link  src 10.10.192.2
 ```
 
-```text
+```bash
 ubuntu@docker-node2:~$ ip link
 3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
     link/ether 08:00:27:25:31:d8 brd ff:ff:ff:ff:ff:ff
@@ -233,14 +233,14 @@ ubuntu@docker-node2:~$ ip link
     link/ether e2:07:73:97:b4:0a brd ff:ff:ff:ff:ff:ff
 ```
 
-```text
+```bash
 ubuntu@docker-node2:~$ ip route
 10.10.192.0/20 dev docker0  proto kernel  scope link  src 10.10.192.1 linkdown 
 10.15.240.0/20 via 10.15.240.0 dev flannel.100 onlink 
 192.168.205.0/24 dev enp0s8  proto kernel  scope link  src 192.168.205.11
 ```
 
-```text
+```bash
 ubuntu@docker-node2:~$ ip neighbor
 192.168.205.10 dev enp0s8 lladdr 08:00:27:cb:b7:b0 REACHABLE
 10.15.240.0 dev flannel.100 lladdr 5a:13:d0:c0:00:db PERMANENT
@@ -248,14 +248,14 @@ ubuntu@docker-node2:~$ ip neighbor
 
 And let's examine docker-node1's network configuration again.
 
-```text
+```bash
 ubuntu@docker-node1:~$ ip route
 10.10.192.0/20 via 10.10.192.0 dev flannel.100 onlink 
 10.15.240.0/20 dev docker0  proto kernel  scope link  src 10.15.240.1 
 192.168.205.0/24 dev enp0s8  proto kernel  scope link  src 192.168.205.10
 ```
 
-```text
+```bash
 ubuntu@docker-node1:~$ ip neighbor
 192.168.205.11 dev enp0s8 lladdr 08:00:27:25:31:d8 REACHABLE
 10.10.192.0 dev flannel.100 lladdr e2:07:73:97:b4:0a PERMANENT
